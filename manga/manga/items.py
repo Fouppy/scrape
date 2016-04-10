@@ -13,6 +13,6 @@ class MangaItem(scrapy.Item):
     name = scrapy.Field()
     release_date = scrapy.Field()
     collection = scrapy.Field()
-    author = scrapy.Field()
     cover = scrapy.Field()
+    tome = scrapy.Field()
     # pass

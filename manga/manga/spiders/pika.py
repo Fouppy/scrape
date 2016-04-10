@@ -1,35 +1,29 @@
 import scrapy
+from scrapy.spiders import CrawlSpider, Rule
+from scrapy.linkextractors import LinkExtractor
 from datetime import datetime
 
 from manga.items import MangaItem
 
-class PikaSpider(scrapy.Spider):
+class PikaSpider(CrawlSpider):
     name = "pika"
     allowed_domains = ["pika.fr"]
     start_urls = [
-        "http://www.pika.fr/planning/2000/04"
+        # "http://www.pika.fr/planning/2000/04"
+        "http://www.pika.fr/planning/"
     ]
 
-    def parse(self, response):
-        mangaSelectors = response.css("div.listing-bookV.listing-4.node div.item")
-        dateSelector = response.request.url.split('/')[4]
-        for sel in mangaSelectors:
-            item = MangaItem()
-            item['name'] = sel.css("span.titre-book a").xpath('./text()').extract()
-            item['release_date'] = sel.css("span.date_sortie").xpath('./text()').extract()
-            item['collection'] = sel.css("span.categorie").xpath('./text()').extract()
-            item['author'] = sel.css("span.author").xpath('./text()').extract()
-            item['cover'] = sel.css("div.mediao__figure img").xpath('./@src').extract()
-            yield item
+    rules = (
+        Rule(LinkExtractor(allow=(), restrict_css=('ul.pagine li:not(.first) a'))),
+        Rule(LinkExtractor(allow=(), restrict_css=('div.nav.fr span.next_page a'))),
+        Rule(LinkExtractor(allow=(), restrict_css=('div.listing-bookV.listing-4.node .titre-book a')), callback='parse_item'),
+    )
 
-        if len(mangaSelectors) == 0 and datetime.today().year > dateSelector:
-            return
-        next_page = response.css("ul.pagine li:not(.first) a::attr('href')")
-        if next_page:
-            url = response.urljoin(next_page[0].extract())
-            yield scrapy.Request(url, self.parse)
-
-        next_month = response.css("div.nav.fr span.next_page a::attr('href')")
-        if next_month:
-            url = response.urljoin(next_month[0].extract())
-            yield scrapy.Request(url, self.parse)
+    def parse_item(self, response):
+        item = MangaItem()
+        item['name'] = response.css("div.mediao__body div:nth-child(3) a").xpath('./text()').extract()
+        item['release_date'] = response.css("div.date_sortie").xpath('./text()').extract()
+        item['collection'] = response.css("div.categorie").xpath('./text()').extract()
+        item['cover'] = response.css("div.mediao__figure").xpath('./@data-popin').extract()
+        item['tome'] = response.css("div.block_infos_techniques div:nth-child(2)").xpath('./text()').extract()
+        yield item
