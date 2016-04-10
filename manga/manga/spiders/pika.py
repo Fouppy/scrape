@@ -10,7 +10,8 @@ class PikaSpider(scrapy.Spider):
     ]
 
     def parse(self, response):
-        for sel in response.css("div.listing-bookV.listing-4.node div.item"):
+        mangaSelectors = response.css("div.listing-bookV.listing-4.node div.item")
+        for sel in mangaSelectors:
             item = MangaItem()
             item['name'] = sel.css("span.titre-book a").xpath('./text()').extract()
             item['date'] = sel.css("span.date_sortie").xpath('./text()').extract()
@@ -18,6 +19,8 @@ class PikaSpider(scrapy.Spider):
             item['author'] = sel.css("span.author").xpath('./text()').extract()
             yield item
 
+        if len(mangaSelectors) == 0:
+            return
         next_page = response.css("ul.pagine li:not(.first) a::attr('href')")
         if next_page:
             url = response.urljoin(next_page[0].extract())
