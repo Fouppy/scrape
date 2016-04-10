@@ -21,6 +21,6 @@ class PikaSpider(CrawlSpider):
         item['name'] = response.css("h1.titre-big").xpath('./text()').extract()
         item['release_date'] = response.css("div.date_sortie").xpath('./text()').extract()
         item['collection'] = response.css("div.categorie").xpath('./text()').extract()
-        item['cover'] = response.css("div.mediao__figure").xpath('./@data-popin').extract()
+        item['cover'] = response.css("div.item-fiche-livre div.mediao__figure img").xpath('./@src').extract()
         item['tome'] = response.css("div.block_infos_techniques div:nth-child(2)").xpath('./text()').extract()
         yield item

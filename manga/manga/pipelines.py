@@ -6,17 +6,19 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 from scrapy.exceptions import DropItem
-import json
+# import json
 import re
 import locale
+import psycopg2
 from datetime import datetime
-import unicodedata
 
 class MangaPipeline(object):
-    def __init__(self):
-        self.file = open('items.json', 'wb')
+    # def __init__(self):
+    #     self.file = open('items.json', 'wb')
 
     def process_item(self, item, spider):
+        conn = psycopg2.connect("dbname=mydb")
+        cur = conn.cursor()
         locale.setlocale(locale.LC_TIME, "fr_FR")
         if item['tome']:
             for x in item['tome']:
@@ -30,13 +32,19 @@ class MangaPipeline(object):
                     x = x.encode('utf8')
                     new_date = unicode(str(datetime.date(datetime.strptime(x[10:] ,'%d %B %Y'))))
                     item['release_date'] = [new_date]
-        if item['cover']:
-            for x in item['cover']:
-                if 'href' in x:
-                    item['cover'] = [x[9:-2]]
         if item['name']:
             for x in item['name']:
                 item['name'] = [re.sub(r'\s[tT]\d{2}', '', x)]
-        line = json.dumps(dict(item)) + "\n"
-        self.file.write(line)
+        if item['cover']:
+            for x in item['cover']:
+                if 'provisoire' in x:
+                    item['cover'] = ['']
+                else:
+                    item['cover'] = [x[:-14]]
+        cur.execute("INSERT INTO pika (name, cover, collection, tome, release_date) VALUES (%s, %s, %s, %s, %s)", (item['name'][0], item['cover'][0], item['collection'][0], item['tome'][0], item['release_date'][0]))
+        conn.commit()
+        # line = json.dumps(dict(item)) + "\n"
+        # self.file.write(line)
+        cur.close()
+        conn.close()
         return item
