@@ -1,4 +1,5 @@
 import scrapy
+from datetime import datetime
 
 from manga.items import MangaItem
 
@@ -11,6 +12,7 @@ class PikaSpider(scrapy.Spider):
 
     def parse(self, response):
         mangaSelectors = response.css("div.listing-bookV.listing-4.node div.item")
+        dateSelector = response.request.url.split('/')[4]
         for sel in mangaSelectors:
             item = MangaItem()
             item['name'] = sel.css("span.titre-book a").xpath('./text()').extract()
@@ -20,7 +22,7 @@ class PikaSpider(scrapy.Spider):
             item['cover'] = sel.css("div.mediao__figure img").xpath('./@src').extract()
             yield item
 
-        if len(mangaSelectors) == 0:
+        if len(mangaSelectors) == 0 and datetime.today().year > dateSelector:
             return
         next_page = response.css("ul.pagine li:not(.first) a::attr('href')")
         if next_page:
