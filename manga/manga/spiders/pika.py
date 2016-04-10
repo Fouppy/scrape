@@ -6,7 +6,7 @@ class PikaSpider(scrapy.Spider):
     name = "pika"
     allowed_domains = ["pika.fr"]
     start_urls = [
-        "http://www.pika.fr/planning/"
+        "http://www.pika.fr/planning/2000/04"
     ]
 
     def parse(self, response):
@@ -14,9 +14,10 @@ class PikaSpider(scrapy.Spider):
         for sel in mangaSelectors:
             item = MangaItem()
             item['name'] = sel.css("span.titre-book a").xpath('./text()').extract()
-            item['date'] = sel.css("span.date_sortie").xpath('./text()').extract()
+            item['release_date'] = sel.css("span.date_sortie").xpath('./text()').extract()
             item['collection'] = sel.css("span.categorie").xpath('./text()').extract()
             item['author'] = sel.css("span.author").xpath('./text()').extract()
+            item['cover'] = sel.css("div.mediao__figure img").xpath('./@src').extract()
             yield item
 
         if len(mangaSelectors) == 0:
