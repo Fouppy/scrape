@@ -15,4 +15,5 @@ class MangaItem(scrapy.Item):
     collection = scrapy.Field()
     cover = scrapy.Field()
     tome = scrapy.Field()
+    book_description = scrapy.Field()
     # pass
