@@ -9,8 +9,7 @@ class PikaSpider(CrawlSpider):
     name = "pika"
     allowed_domains = ["pika.fr"]
     start_urls = [
-        # "http://www.pika.fr/planning/2000/04"
-        "http://www.pika.fr/planning/"
+        "http://www.pika.fr/planning/2000/04"
     ]
 
     rules = (
@@ -21,7 +20,7 @@ class PikaSpider(CrawlSpider):
 
     def parse_item(self, response):
         item = MangaItem()
-        item['name'] = response.css("div.mediao__body div:nth-child(3) a").xpath('./text()').extract()
+        item['name'] = response.css("h1.titre-big").xpath('./text()').extract()
         item['release_date'] = response.css("div.date_sortie").xpath('./text()').extract()
         item['collection'] = response.css("div.categorie").xpath('./text()').extract()
         item['cover'] = response.css("div.mediao__figure").xpath('./@data-popin').extract()
